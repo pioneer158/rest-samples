@@ -65,7 +65,7 @@ public class DemoGeneric {
 
     public DemoGeneric() throws Exception {
         keyFilePath =
-                System.getenv().getOrDefault("GOOGLE_APPLICATION_CREDENTIALS", "com/google/developers/wallet/rest/neat-talent-439306-a1-36da50a532fb.json");
+                System.getenv().getOrDefault("GOOGLE_APPLICATION_CREDENTIALS", "path.json");
 
         auth();
     }
