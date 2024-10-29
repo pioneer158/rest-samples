@@ -65,7 +65,7 @@ public class DemoGeneric {
 
     public DemoGeneric() throws Exception {
         keyFilePath =
-                System.getenv().getOrDefault("GOOGLE_APPLICATION_CREDENTIALS", "path.json");
+                System.getenv().getOrDefault("GOOGLE_APPLICATION_CREDENTIALS", "com/google/developers/wallet/rest/neat-talent-439306-a1-1588ca6ef006.json");
 
         auth();
     }
@@ -306,18 +306,6 @@ public class DemoGeneric {
                         .setId(String.format("%s.%s", issuerId, objectSuffix))
                         .setClassId(String.format("%s.%s", issuerId, classSuffix))
                         .setState("ACTIVE")
-                        .setHeroImage(
-                                new Image()
-                                        .setSourceUri(
-                                                new ImageUri()
-                                                        .setUri(
-                                                                "https://farm4.staticflickr.com/3723/11177041115_6e6a3b6f49_o.jpg"))
-                                        .setContentDescription(
-                                                new LocalizedString()
-                                                        .setDefaultValue(
-                                                                new TranslatedString()
-                                                                        .setLanguage("en-US")
-                                                                        .setValue("Hero image description"))))
                         .setTextModulesData(
                                 List.of(
                                         new TextModuleData()
@@ -352,7 +340,7 @@ public class DemoGeneric {
                                                                                                 .setLanguage("en-US")
                                                                                                 .setValue("Image module description"))))
                                                 .setId("IMAGE_MODULE_ID")))
-                        .setBarcode(new Barcode().setType("QR_CODE").setValue("QR code value"))
+                        .setBarcode(new Barcode().setType("QR_CODE").setValue("https://hk.trip.com/?locale=zh-hk"))
                         .setCardTitle(
                                 new LocalizedString()
                                         .setDefaultValue(
@@ -361,7 +349,7 @@ public class DemoGeneric {
                                 new LocalizedString()
                                         .setDefaultValue(
                                                 new TranslatedString().setLanguage("en-US").setValue("Generic header")))
-                        .setHexBackgroundColor("#4285f4")
+                        .setHexBackgroundColor("#ff85f4")
                         .setLogo(
                                 new Image()
                                         .setSourceUri(
@@ -377,11 +365,15 @@ public class DemoGeneric {
                         .setAppLinkData(new AppLinkData().
                                 setAndroidAppLinkInfo(new AppLinkDataAppLinkInfo()
                                         .setAppTarget(new AppLinkDataAppLinkInfoAppTarget()
-                                                .setTargetUri(new Uri()
-                                                        .setUri("https://play.google.com/store/apps/details?id=ctrip.english")
-                                                        .setId("AppLinkData")
-                                                        .setDescription("TestTest"))
-                                        )));
+                                                .setTargetUri(new Uri().setUri("ctripglobal://mytrip/home?wallet=Google").setDescription("TestURL").setId("TestId"))
+                                        )
+                                ));
+//                        .setAppLinkData(new AppLinkData().
+//                                setAndroidAppLinkInfo(new AppLinkDataAppLinkInfo()
+//                                        .setAppTarget(new AppLinkDataAppLinkInfoAppTarget()
+//                                                .setPackageName("ctrip.english")
+//                                        )
+//                                ));
 
         GenericObject response = service.genericobject().insert(newObject).execute();
 
@@ -394,6 +386,63 @@ public class DemoGeneric {
 
     // [START updateObject]
 
+    public String createObjectWithObjectId(String issuerId, String classSuffix, String objectId)
+            throws IOException {
+        // Check if the object exists
+        try {
+            service.genericobject().get(objectId).execute();
+            return String.format("%s", objectId);
+        } catch (GoogleJsonResponseException ex) {
+            if (ex.getStatusCode() != 404) {
+                // Something else went wrong...
+                ex.printStackTrace();
+                return String.format("%s", objectId);
+            }
+        }
+
+        // See link below for more information on required properties
+        // https://developers.google.com/wallet/generic/rest/v1/genericobject
+        GenericObject newObject =
+                new GenericObject()
+                        .setId(objectId)
+                        .setClassId(String.format("%s.%s", issuerId, classSuffix))
+                        .setState("ACTIVE")
+                        .setBarcode(new Barcode().setType("QR_CODE").setValue("https://hk.trip.com/?locale=zh-hk"))
+                        .setCardTitle(
+                                new LocalizedString()
+                                        .setDefaultValue(
+                                                new TranslatedString().setLanguage("en-US").setValue("Linked Pass Card")))
+                        .setHeader(
+                                new LocalizedString()
+                                        .setDefaultValue(
+                                                new TranslatedString().setLanguage("en-US").setValue("Linked Pass Card")))
+                        .setHexBackgroundColor("#1185f4")
+                        .setLogo(
+                                new Image()
+                                        .setSourceUri(
+                                                new ImageUri()
+                                                        .setUri(
+                                                                "https://storage.googleapis.com/wallet-lab-tools-codelab-artifacts-public/pass_google_logo.jpg"))
+                                        .setContentDescription(
+                                                new LocalizedString()
+                                                        .setDefaultValue(
+                                                                new TranslatedString()
+                                                                        .setLanguage("en-US")
+                                                                        .setValue("Generic card logo"))))
+                        .setAppLinkData(new AppLinkData().
+                                setAndroidAppLinkInfo(new AppLinkDataAppLinkInfo()
+                                        .setAppTarget(new AppLinkDataAppLinkInfoAppTarget()
+                                                .setTargetUri(new Uri().setUri("ctripglobal://mytrip/home?wallet=Google").setDescription("TestURL").setId("TestId"))
+                                        )
+                                ));
+
+
+        GenericObject response = service.genericobject().insert(newObject).execute();
+        System.out.println("Object insert response");
+        System.out.println(response.toPrettyString());
+        return response.getId();
+    }
+
     /**
      * Update an object.
      *
@@ -403,7 +452,7 @@ public class DemoGeneric {
      * @param objectSuffix Developer-defined unique ID for this pass object.
      * @return The pass object ID: "{issuerId}.{objectSuffix}"
      */
-    public String updateObject(String issuerId, String objectSuffix) throws IOException {
+    public String updateObject(String issuerId, String objectSuffix, String linkedObjectId) throws IOException {
         GenericObject updatedObject;
 
         // Check if the object exists
@@ -442,7 +491,16 @@ public class DemoGeneric {
         updatedObject.setCardTitle(
                 new LocalizedString()
                         .setDefaultValue(
-                                new TranslatedString().setLanguage("en-US").setValue("XXXXXXXXXGeneric card title2222222")));
+                                new TranslatedString().setLanguage("en-US").setValue("EEEEEEEEE")));
+        //更新QRCode
+        updatedObject.setBarcode(new Barcode().setType("QR_CODE").setValue("https://hk.trip.com/?locale=zh-hk&wallet=Google"));
+
+
+        //AutoPass linkedObjectId
+        if (linkedObjectId != null) {
+            updatedObject.setLinkedObjectIds(List.of(linkedObjectId));
+        }
+
         GenericObject response =
                 service
                         .genericobject()
@@ -464,63 +522,28 @@ public class DemoGeneric {
             if (ex.getStatusCode() == 404) {
                 // Object does not exist
                 System.out.printf("Object %s.%s not found!%n", issuerId, objectSuffix);
-                LOGI(TAG, "主卡片还未创建,无法更新");
+                LOGI(TAG, "mainObjectId还未创建,无法更新");
                 return;
             } else {
                 // Something else went wrong...
+                LOGI(TAG, "mainObjectId还未创建,无法更新");
                 ex.printStackTrace();
-                LOGI(TAG, "主卡片还未创建,无法更新");
                 return;
             }
         }
-        LOGI(TAG, "主卡片已经创建,可以更新");
+        LOGI(TAG, "mainObjectId已经创建,可以更新");
 
         // Create linked pass object
-        String linkObjectId = String.format("%s.%s", issuerId, "linkedObject");
-        String classId = String.format("%s.%s", issuerId, classSuffix);
-        GenericObject linkedObject =
-                new GenericObject()
-                        .setId(mainObjectId)
-                        .setClassId(classId)
-                        .setState("ACTIVE")
-                        .setTextModulesData(
-                                List.of(
-                                        new TextModuleData()
-                                                .setHeader("Text module header")
-                                                .setBody("Text module body")
-                                                .setId("TEXT_MODULE_ID")))
-                        .setBarcode(new Barcode().setType("QR_CODE").setValue("QR code value"))
-                        .setCardTitle(
-                                new LocalizedString()
-                                        .setDefaultValue(
-                                                new TranslatedString().setLanguage("en-US").setValue("Generic card title XXXCXCXC")))
-                        .setHeader(
-                                new LocalizedString()
-                                        .setDefaultValue(
-                                                new TranslatedString().setLanguage("en-US").setValue("Generic header")))
-                        .setAppLinkData(new AppLinkData().
-                                setAndroidAppLinkInfo(new AppLinkDataAppLinkInfo()
-                                        .setAppTarget(new AppLinkDataAppLinkInfoAppTarget()
-                                                .setTargetUri(new Uri()
-                                                        .setUri("https://play.google.com/store/apps/details?id=ctrip.english")
-                                                        .setId("AppLinkData")
-                                                        .setDescription("TestTest"))
-                                        )))
-                        .setHexBackgroundColor("#ccff5f");
+        LOGI(TAG, "创建linked Object");
+        String linkObjectId = String.format("%s.%s.%s", issuerId, "linkedObjectXX", objectSuffix);
 
-        LOGI(TAG, "linkedObject:" + linkedObject.toPrettyString());
-
-        createObject(issuerId, classSuffix, "linkedObject");
+        createObjectWithObjectId(issuerId, classSuffix, linkObjectId);
 
         LOGI(TAG, "linked Object已经创建");
 
-        //add linked object to main object
-        GenericObject response =
-                service
-                        .genericobject()
-                        .update(mainObjectId, linkedObject)
-                        .execute();
-        LOGI(TAG, "response" + response);
+        LOGI(TAG, "将linked Object链接到Main Object");
+
+        updateObject(issuerId, objectSuffix, linkObjectId);
     }
 
 
@@ -654,18 +677,6 @@ public class DemoGeneric {
                         .setId(String.format("%s.%s", issuerId, objectSuffix))
                         .setClassId(String.format("%s.%s", issuerId, classSuffix))
                         .setState("ACTIVE")
-                        .setHeroImage(
-                                new Image()
-                                        .setSourceUri(
-                                                new ImageUri()
-                                                        .setUri(
-                                                                "https://farm4.staticflickr.com/3723/11177041115_6e6a3b6f49_o.jpg"))
-                                        .setContentDescription(
-                                                new LocalizedString()
-                                                        .setDefaultValue(
-                                                                new TranslatedString()
-                                                                        .setLanguage("en-US")
-                                                                        .setValue("Hero image description"))))
                         .setTextModulesData(
                                 List.of(
                                         new TextModuleData()
@@ -700,7 +711,7 @@ public class DemoGeneric {
                                                                                                 .setLanguage("en-US")
                                                                                                 .setValue("Image module description"))))
                                                 .setId("IMAGE_MODULE_ID")))
-                        .setBarcode(new Barcode().setType("QR_CODE").setValue("QR code value"))
+                        .setBarcode(new Barcode().setType("QR_CODE").setValue("https://hk.trip.com/?locale=zh-hk"))
                         .setCardTitle(
                                 new LocalizedString()
                                         .setDefaultValue(
@@ -709,7 +720,7 @@ public class DemoGeneric {
                                 new LocalizedString()
                                         .setDefaultValue(
                                                 new TranslatedString().setLanguage("en-US").setValue("Generic header")))
-                        .setHexBackgroundColor("#4285f4")
+                        .setHexBackgroundColor("#ff85f4")
                         .setLogo(
                                 new Image()
                                         .setSourceUri(
@@ -725,10 +736,13 @@ public class DemoGeneric {
                         .setAppLinkData(new AppLinkData().
                                 setAndroidAppLinkInfo(new AppLinkDataAppLinkInfo()
                                         .setAppTarget(new AppLinkDataAppLinkInfoAppTarget()
-                                                .setTargetUri(new Uri()
-                                                        .setUri("https://hk.trip.com?wallet=Google")
-                                                        .setId("AppLinkData")
-                                                        .setDescription("TestTest")))));
+                                                .setTargetUri(new Uri().setUri("ctripglobal://mytrip/home?wallet=Google").setDescription("TestURL").setId("TestId"))
+                                        )
+                                ));
+//                        .setAppLinkData(new AppLinkData().
+//                                setAndroidAppLinkInfo(new AppLinkDataAppLinkInfo()
+//                                        .setAppTarget(new AppLinkDataAppLinkInfoAppTarget()
+//                                                .setPackageName("ctrip.english"))));
 
         // Create the JWT as a HashMap object
         HashMap<String, Object> claims = new HashMap<String, Object>();
